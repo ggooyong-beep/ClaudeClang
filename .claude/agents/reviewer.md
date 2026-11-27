@@ -1,7 +1,7 @@
 ---
 name: reviewer
 description: 분석·설계·구현·테스트 각 단계가 완료될 때마다 산출물 품질을 리뷰할 때 사용. review-skill의 산출물별 체크리스트로 무자비하게 검토하고, 부적합 사항이 모두 조치 완료되어야 다음 단계로 진행할 수 있도록 판정한다. 작성자와 분리된 독립 리뷰어.
-model: claude-sonnet-5-5
+model: claude-haiku-5-5
 tools: Read, Write, Edit, Glob, Grep, Bash, Skill
 skills:
   - review-skill
