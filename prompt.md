@@ -69,3 +69,15 @@
   - 정적분석 위반: `Static Analysis` 단계 FAILURE, Warnings NG에 CppCheck 5건·Lizard 1건 표시.
 - `develop` 브랜치도 Jenkins 빌드 SUCCESS.
 - 한계: Jenkins가 로컬(localhost)이라 GitHub가 웹훅을 보낼 수 없음 → PR 상태 체크/브랜치 보호 연동은 미구성(사용자 결정 필요).
+
+## 8. 도구 최신 버전 업그레이드
+
+**프롬프트:** 구 버전의 툴은 최신 버전으로 설치하도록 한다. (직전 질문: 설치 내역, 검증 툴 보고)
+
+**답변 요약:**
+- 최신 릴리스를 GitHub/PyPI/apt.llvm.org/Docker Hub에서 조회해 확인한 뒤 Git Flow(`feature/upgrade-toolchain-latest`)로 진행.
+- 이미지 기반을 Ubuntu 26.04 LTS로 올리고 LLVM 19→23.1.6, CMake 3.28→4.5.1, CppCheck 2.13→2.22.0, Doxygen 1.9.8→1.18.0, GoogleTest 1.14→1.18.0, CLOC 1.98→2.12, Ninja 1.11→1.13.2, Python 3.12→3.14.4, clang-format 18→23. Lizard 1.26.1, PICT는 이미 최신(PICT는 v3.7.4 태그로 고정). 버전은 Dockerfile `ARG`에서 관리.
+- Jenkins LTS 기반을 JDK 21→25로 변경(Jenkins 2.580.3은 이미 최신 LTS), 플러그인 97개 업데이트 대기 없음.
+- 빌드 중 문제: `libpcre3-dev`가 26.04에서 제거됨(제외), apt 미러 일시 오류(재시도 설정 추가). 빌드 로그가 덮어써지기 전에 이전 실패를 읽는 모니터 오탐도 있었으나 실제 빌드 상태를 재확인.
+- 검증: 로컬 컨테이너와 Jenkins 모두에서 통과 케이스 SUCCESS, MC/DC 미충족 FAILURE, 정적분석 위반 실패 확인. 임시 검증 브랜치는 삭제.
+- `CLAUDE.md`에 "모든 도구는 최신 릴리스" 규칙과 고정 버전 목록 추가.
