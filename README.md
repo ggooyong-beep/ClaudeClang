@@ -1,1 +1,1 @@
-# ClaudeClan
+# ClaudeClang
