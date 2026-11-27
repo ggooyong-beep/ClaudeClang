@@ -55,3 +55,17 @@
 - Jenkins LTS(`ci/jenkins/`)를 Docker로 기동, 포트 8080, 플러그인 설치 및 `ClaudeClang` 멀티브랜치 잡 생성. `Jenkinsfile`, `scripts/ci/*`, `.claude/settings.json`(Stop 훅) 추가.
 - 검증 중 `check_mcdc.py`가 MC/DC 미충족을 못 잡는 결함(출력 형식 오가정)을 발견해 수정, 미충족 rc=1/충족 rc=0 확인. Lizard 훅 위반 시 rc=2 확인.
 - 미결: `cppcheck --enable=all`은 라이브러리 단독 분석에서 `unusedFunction` 등 오탐이 나와 샘플이 불합격함 → 검사 범위 조정 여부는 사용자 결정 대기.
+
+## 7. Git Flow 진행 및 Jenkins 실증 (자율 진행)
+
+**프롬프트:** git flow 따라라 / jenkins 실행을 해야 한다. 스캔해서 실행해봐 / 현재 진행 상태 요약 보고해 / gitflow 따라가고 이후 작업 네가 알아서 진행해. 문제가 발생하면 원인 파악해서 해결하고, 마지막에 나에게 보고해. 환경 모두 구성 진행해. 사전에 내가 정해줘야 하는 것 알려줘
+
+**답변 요약:**
+- Git Flow: `develop` 생성 → `feature/aspice-toolchain-ci` → PR #1 → Jenkins 통과(#2) 후 `develop`에 병합.
+- `.gitattributes` 추가(sh/py/Dockerfile/Jenkinsfile 등 LF 고정).
+- Jenkins 멀티브랜치 스캔·실행 실증(검증용 브랜치 3개를 만들어 확인 후 삭제, 병합 안 함):
+  - 통과 케이스: SUCCESS, 테스트 9건 통과, CppCheck/Lizard가 Warnings NG에 집계(0건), 커버리지 HTML(단위 MC/DC 100%) 열람 가능.
+  - MC/DC 미충족: `Unit Test` 단계 FAILURE.
+  - 정적분석 위반: `Static Analysis` 단계 FAILURE, Warnings NG에 CppCheck 5건·Lizard 1건 표시.
+- `develop` 브랜치도 Jenkins 빌드 SUCCESS.
+- 한계: Jenkins가 로컬(localhost)이라 GitHub가 웹훅을 보낼 수 없음 → PR 상태 체크/브랜치 보호 연동은 미구성(사용자 결정 필요).
