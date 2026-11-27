@@ -69,7 +69,7 @@ A-SPICE 기반 SW 개발 프로젝트(C++, Clang 18+ 툴체인)입니다.
 ## 3. Git 브랜치 및 PR 전략
 - 브랜치는 **Git Flow**를 준수한다. 영구 브랜치 `main`(릴리스)·`develop`(통합)에 직접 커밋/푸시하지 않는다.
 - 작업 브랜치: `feature/<설명>`(`develop`에서 분기 → `develop`으로 PR), `release/<버전>`(`develop`에서 분기 → `main`·`develop`, 태그 `vX.Y.Z`), `hotfix/<설명>`(`main`에서 분기 → `main`·`develop`). 설명은 영문 소문자 kebab-case. 병합이 끝난 브랜치는 삭제한다.
-- **PR은 CI를 활용**하며, **CI를 통과해야만 PR을 완료**한다. CI 통과 항목은 **빌드 성공 + 위 2절의 소스코드 품질 기준 전부**다.
+- **PR은 CI(GitHub Actions)를 활용**하며, **CI를 통과해야만 PR을 완료**한다. CI 통과 항목은 **빌드 성공 + 위 2절의 소스코드 품질 기준 전부**다.
 - PR은 이터레이션 완료에 대한 사용자 확인 후에 만든다.
 - 커밋 메시지는 `<유형>: <요약>`(`feat`, `fix`, `refactor`, `test`, `docs`, `chore`), 요약은 한글.
 
@@ -94,7 +94,7 @@ A-SPICE 기반 SW 개발 프로젝트(C++, Clang 18+ 툴체인)입니다.
 - 디렉터리: `src/`·`include/`(소스), `test/tdd|unit|integration/`(테스트), `docs/`(산출물), `scripts/`(CI·훅·검사), `build/`(산출물, git 제외).
 
 ## 5. CI 환경
-- CI는 **Jenkins LTS(안정화 버전)**이며 이 PC의 Docker에서 실행한다. **포트 8080**.
-- 구성: `ci/jenkins/`(Dockerfile, `plugins.txt`, `docker-compose.yml`, JCasC). 실행: `docker compose -f ci/jenkins/docker-compose.yml up -d` → http://localhost:8080
-- 파이프라인은 저장소 루트의 `Jenkinsfile`이며, `claudeclangbuild` 이미지 안에서 빌드→테스트→정적분석→메트릭→품질 게이트를 수행한다.
-- 테스트·정적분석 결과는 Jenkins 플러그인(JUnit, Warnings Next Generation, HTML Publisher)에서 확인한다.
+- **주 CI는 GitHub Actions**(`.github/workflows/ci.yml`)다. PR(`develop`·`main` 대상)과 `develop`·`main`·`release/**`·`hotfix/**` push에서 실행되며, `docker/build/Dockerfile`로 `claudeclangbuild` 이미지를 빌드(레이어 캐시 사용)해 그 안에서 빌드→정적분석→단위→통합→TDD를 수행한다. 품질 게이트를 하나라도 어기면 실패하며, 결과·커버리지 리포트는 `reports` 아티팩트와 실행 요약에 남는다.
+- **보조 CI는 내부 Jenkins LTS**이며 이 PC의 Docker에서 실행한다(**포트 8080**). 같은 `Jenkinsfile` 게이트를 **4시간마다 주기적으로**(`triggers { cron('H H/4 * * *') }`) 재실행하고 결과를 Jenkins 플러그인(JUnit, Warnings Next Generation, HTML Publisher)에서 확인한다.
+- Jenkins 구성: `ci/jenkins/`(Dockerfile, `plugins.txt`, `docker-compose.yml`, JCasC). 실행: `docker compose -f ci/jenkins/docker-compose.yml up -d` → http://localhost:8080
+- 두 CI는 동일한 스크립트(`scripts/ci/*.sh`)와 동일한 이미지를 쓰므로 결과가 같아야 한다. PR 완료 판단은 GitHub Actions 결과를 기준으로 한다.

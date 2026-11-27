@@ -1,0 +1,86 @@
+# CI: GitHub Actions. 개발과 동일한 claudeclangbuild 이미지(docker/build/Dockerfile) 안에서
+# 빌드 이상의 모든 작업을 수행한다. 품질 게이트를 하나라도 어기면 실패한다.
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+  push:
+    branches: [develop, main, 'release/**', 'hotfix/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE: claudeclangbuild
+
+jobs:
+  quality-gate:
+    name: Build and Quality Gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build claudeclangbuild image
+        uses: docker/build-push-action@v6
+        with:
+          context: docker/build
+          load: true
+          tags: ${{ env.IMAGE }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Define container runner
+        run: |
+          cat > "$RUNNER_TEMP/incontainer.sh" <<'SH'
+          #!/usr/bin/env bash
+          exec docker run --rm -u "$(id -u):$(id -g)" -e HOME=/tmp \
+            -v "$GITHUB_WORKSPACE":/work -w /work "$IMAGE" "$@"
+          SH
+          chmod +x "$RUNNER_TEMP/incontainer.sh"
+
+      - name: Build
+        run: $RUNNER_TEMP/incontainer.sh bash scripts/ci/build.sh
+
+      - name: Static Analysis (CppCheck, Lizard, CLOC)
+        run: $RUNNER_TEMP/incontainer.sh bash scripts/ci/static_analysis.sh
+
+      - name: Unit Test (MC/DC 100%)
+        run: $RUNNER_TEMP/incontainer.sh bash scripts/ci/run_tests.sh unit
+
+      - name: Integration Test (function coverage 100%)
+        run: $RUNNER_TEMP/incontainer.sh bash scripts/ci/run_tests.sh integration
+
+      - name: TDD Test (reference)
+        run: $RUNNER_TEMP/incontainer.sh bash scripts/ci/run_tests.sh tdd
+
+      - name: Publish test summary
+        if: always()
+        run: |
+          {
+            echo "## Test results"
+            for k in unit integration tdd; do
+              f="build/reports/$k/junit.xml"
+              if [ -f "$f" ]; then
+                echo "- $k: $(grep -o 'tests="[0-9]*"' "$f" | head -1) $(grep -o 'failures="[0-9]*"' "$f" | head -1)"
+              else
+                echo "- $k: no tests"
+              fi
+            done
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: reports
+          path: build/reports/
+          if-no-files-found: ignore
