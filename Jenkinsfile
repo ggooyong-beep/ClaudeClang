@@ -1,7 +1,9 @@
-// CI 파이프라인: claudeclangbuild 이미지(개발과 동일) 안에서 모든 빌드 이상의 작업을 수행한다.
+// 보조 CI(내부 Jenkins): 주 CI는 GitHub Actions(.github/workflows/ci.yml)이며, 이 파이프라인은 같은 게이트를 내부에서 주기적으로 재실행한다.
+// 파이프라인: claudeclangbuild 이미지(개발과 동일) 안에서 모든 빌드 이상의 작업을 수행한다.
 // 품질 게이트(빌드, CppCheck 0, Lizard, 단위 MC/DC 100%, 통합 함수 100%, 성공률 100%)를 모두 통과해야 PR을 완료할 수 있다.
 pipeline {
   agent { docker { image 'claudeclangbuild'; args '-u root' } }
+  triggers { cron('H H/4 * * *') }   // 4시간마다 정기 실행(멀티브랜치는 브랜치별로 동작)
   options { timestamps(); ansiColor('xterm'); buildDiscarder(logRotator(numToKeepStr: '20')) }
   stages {
     stage('Build')            { steps { sh 'bash scripts/ci/build.sh' } }

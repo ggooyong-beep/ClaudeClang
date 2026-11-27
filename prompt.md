@@ -81,3 +81,13 @@
 - 빌드 중 문제: `libpcre3-dev`가 26.04에서 제거됨(제외), apt 미러 일시 오류(재시도 설정 추가). 빌드 로그가 덮어써지기 전에 이전 실패를 읽는 모니터 오탐도 있었으나 실제 빌드 상태를 재확인.
 - 검증: 로컬 컨테이너와 Jenkins 모두에서 통과 케이스 SUCCESS, MC/DC 미충족 FAILURE, 정적분석 위반 실패 확인. 임시 검증 브랜치는 삭제.
 - `CLAUDE.md`에 "모든 도구는 최신 릴리스" 규칙과 고정 버전 목록 추가.
+
+## 9. CI를 GitHub Actions로 변경, Jenkins는 주기 실행
+
+**프롬프트:** CI는 ACTION으로 변경해줘. 단, 내부에서도 JENKINS를 주기적으로 실행하도록 구성해줘.
+
+**답변 요약:**
+- Git Flow(`feature/ci-github-actions`)로 진행.
+- `.github/workflows/ci.yml` 추가: 동일한 `claudeclangbuild` 이미지를 빌드(gha 캐시)하고 컨테이너 안에서 build → static analysis → unit(MC/DC) → integration(function) → TDD를 단계별 수행, 리포트 아티팩트 업로드.
+- `Jenkinsfile`에 `cron('H H/4 * * *')` 추가: 내부 Jenkins가 4시간마다 같은 게이트를 재실행하는 보조 CI.
+- `CLAUDE.md` 3·5절을 "주 CI = GitHub Actions, 보조 CI = 주기 실행 Jenkins"로 수정.
