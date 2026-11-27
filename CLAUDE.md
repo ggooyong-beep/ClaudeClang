@@ -76,7 +76,7 @@ A-SPICE 기반 SW 개발 프로젝트(C++, Clang 18+ 툴체인)입니다.
 ## 4. 개발 환경
 | 항목 | 도구 |
 |---|---|
-| 개발 언어 | C++ (Clang 18 이상의 최신, 현재 Docker 이미지는 Clang 19, C++20) |
+| 개발 언어 | C++ (Clang 18 이상의 최신, 현재 Docker 이미지는 Clang 23, C++20) |
 | 빌드 도구 | **CMake + Ninja** (추천: Clang과 `compile_commands.json` 연동이 좋고 증분 빌드가 빠름) |
 | 정적 분석 | CppCheck |
 | 테스트 프레임워크 | Google Test / GMock |
@@ -85,6 +85,7 @@ A-SPICE 기반 SW 개발 프로젝트(C++, Clang 18+ 툴체인)입니다.
 | 주석률 | CLOC |
 | 추가 도구 | PICT(조합 테스트), clang-format(서식), Doxygen(문서), Python 3(리포트·검사 스크립트) |
 
+- **모든 도구는 최신 릴리스 버전을 사용한다.** 버전은 `docker/build/Dockerfile`의 `ARG`(LLVM, CMake, CppCheck, Doxygen, GoogleTest, CLOC, PICT, Lizard)와 `ci/jenkins/Dockerfile`(Jenkins LTS)에서 한곳씩 관리하며, 오래된 버전을 발견하면 최신으로 올린 뒤 CI 검증을 통과해야 병합한다. 현재 고정 버전: LLVM 23.1.6, CMake 4.5.1, Ninja 1.13.2, CppCheck 2.22.0, Doxygen 1.18.0, GoogleTest 1.18.0, CLOC 2.12, PICT 3.7.4, Lizard 1.26.1, Ubuntu 26.04 LTS.
 - **개발 빌드와 CI 빌드는 동일한 Docker 이미지**를 쓴다. 이미지 이름은 **`ClaudeCLangBuild`**다.
   - Docker는 저장소 이름에 대문자를 허용하지 않으므로 실제 태그는 소문자 `claudeclangbuild`다.
   - 빌드: `docker build -t claudeclangbuild docker/build/`

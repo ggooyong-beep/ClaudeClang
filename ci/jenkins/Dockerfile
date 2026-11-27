@@ -1,5 +1,5 @@
 # Jenkins LTS (안정화 버전) + Docker CLI + 필요한 플러그인
-FROM jenkins/jenkins:lts-jdk21
+FROM jenkins/jenkins:lts-jdk25
 USER root
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl \
     && install -m 0755 -d /etc/apt/keyrings \
