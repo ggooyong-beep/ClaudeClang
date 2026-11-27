@@ -43,3 +43,15 @@
 - `CLAUDE.md`: A-SPICE 프로세스, 단계별 리뷰, 순환복잡도 ≤ 10, 단위 MC/DC 100%, 통합 statement 100%, CppCheck, Git Flow, Docker 툴체인.
 - `docker/Dockerfile`: 툴체인 컨테이너 정의.
 - 가정: 언어는 C(Clang/LLVM), 순환복잡도 측정은 lizard, 단위 테스트 프레임워크는 미지정. 스크립트·Dockerfile은 실행 검증하지 않음.
+
+## 6. 리뷰어 모델·CLAUDE.md 개정·툴체인/CI 구성 (Exam2.md 추가분)
+
+**프롬프트:** `@Exam2.md` (리뷰 에이전트 게이트·Haiku, 이후 CLAUDE.md 개정 + 개발 환경 + Jenkins CI 지시)
+
+**답변 요약:**
+- `reviewer`: 무자비한 리뷰, 부적합 전부 조치해야 다음 단계, 조건부 승인 제거, 모델 `claude-haiku-5-5`. (커밋·푸시 완료)
+- `CLAUDE.md` 전면 개정: 애자일 1이터레이션(분석~시스템 테스트), 이터레이션 완료 시 사용자 확인 후 PR, 메인 에이전트가 개발, TDD 테스트 분리(`test/tdd`)·별도 결과/커버리지, 커버리지 기준(시스템 요구사항 100% / 통합 함수 100% / 단위 MC/DC 100%), 순환복잡도 ≤10·함수 라인 ≤80(Lizard + Stop 훅), Doxygen Human-in-the-Loop 주석, Git Flow + CI 게이트, 개발 환경·CI 환경.
+- 빌드 도구는 CMake + Ninja 추천. 도커 이미지 `ClaudeCLangBuild`는 대문자 불가라 태그 `claudeclangbuild`(`docker/build/Dockerfile`, Clang 19, GTest/GMock, CppCheck, Lizard, CLOC, PICT).
+- Jenkins LTS(`ci/jenkins/`)를 Docker로 기동, 포트 8080, 플러그인 설치 및 `ClaudeClang` 멀티브랜치 잡 생성. `Jenkinsfile`, `scripts/ci/*`, `.claude/settings.json`(Stop 훅) 추가.
+- 검증 중 `check_mcdc.py`가 MC/DC 미충족을 못 잡는 결함(출력 형식 오가정)을 발견해 수정, 미충족 rc=1/충족 rc=0 확인. Lizard 훅 위반 시 rc=2 확인.
+- 미결: `cppcheck --enable=all`은 라이브러리 단독 분석에서 `unusedFunction` 등 오탐이 나와 샘플이 불합격함 → 검사 범위 조정 여부는 사용자 결정 대기.

@@ -1,0 +1,14 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash scripts/hooks/lizard_check.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+# 사용: docker compose -f ci/jenkins/docker-compose.yml up -d --build  → http://localhost:8080
+services:
+  jenkins:
+    build: .
+    image: claudeclang-jenkins:lts
+    container_name: jenkins
+    user: root
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      JENKINS_ADMIN_PASSWORD: ${JENKINS_ADMIN_PASSWORD:?.env 파일에 JENKINS_ADMIN_PASSWORD 를 설정하세요}
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+volumes:
+  jenkins_home:
