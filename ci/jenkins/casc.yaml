@@ -1,0 +1,27 @@
+jenkins:
+  systemMessage: "ClaudeClang CI (Jenkins LTS)"
+  numExecutors: 2
+  securityRealm:
+    local:
+      allowsSignup: false
+      users:
+        - id: "admin"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  authorizationStrategy:
+    loggedInUsersCanDoAnything:
+      allowAnonymousRead: false
+unclassified:
+  location:
+    url: "http://localhost:8080/"
+jobs:
+  - script: >
+      multibranchPipelineJob('ClaudeClang') {
+        branchSources {
+          git {
+            id('claudeclang')
+            remote('https://github.com/ggooyong-beep/ClaudeClang.git')
+          }
+        }
+        factory { workflowBranchProjectFactory { scriptPath('Jenkinsfile') } }
+        orphanedItemStrategy { discardOldItems { numToKeep(20) } }
+      }
